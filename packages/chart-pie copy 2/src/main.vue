@@ -1,15 +1,15 @@
 <!--
-名称：ins-gauge
+名称：ins-pie
 版本：1.0.0
 作者：谢元将
 时间：2020年8月24日11:41:13 
 -->
 <template>
-  <div class="ins-gauge">
+  <div class="ins-pie">
     <ins-base
       ref="ChartBase"
       :has-data="hasData"
-      :no-data-message="noDataMessage"
+      :empty-text="emptyText"
       :options="optionsResult"
       @click="click"
       @legendselectchanged="legendselectchanged"
@@ -43,7 +43,7 @@ const labelCenter = {
 }
 
 export default {
-  name: 'InsGauge',
+  name: 'InsPie',
   components: {
     InsBase,
   },
@@ -75,7 +75,7 @@ export default {
     showLabel: { type: Boolean, default: true }, //是否显示label
     labelPosition: { type: String, default: 'outside' }, //legend位置
     unit: { type: String, default: '单位：万元' }, //单位
-    noDataMessage: { type: String, default: '暂无数据' }, //没有数据时显示的提示文字
+    emptyText: { type: String, default: '暂无数据' }, //没有数据时显示的提示文字
   },
   data() {
     return {
@@ -105,7 +105,9 @@ export default {
   methods: {
     init() {
       this.listResult = cloneDeep(this.list).map(d => d) //深度拷贝list
-      this.render() //配置echarts图表
+      if (this.listResult?.length) {
+        this.render() //配置echarts图表
+      }
     },
     render() {
       const options = {
@@ -119,7 +121,7 @@ export default {
             lineHeight: 18,
           },
         },
-        color: this.colors,
+        color: this.getColors(),
         tooltip: Object.assign(
           {
             trigger: 'item', //'axis'
@@ -145,16 +147,14 @@ export default {
     /* 获取所有图例data */
     getLegendData() {
       let result = null
+      result = this.listResult[0].data.map(d => d.name)
 
-      if (this.listResult) {
-        result = this.listResult[0].data.map(d => d.name)
-      }
       return result
     },
     getSeries() {
       let series = {
         name: this.list[0].name,
-        type: 'Gauge',
+        type: 'pie',
         radius: this.showLabel ? ['40%', '60%'] : ['60%', '85%'],
         center: ['50%', '50%'],
         avoidLabelOverlap: true,
@@ -163,9 +163,11 @@ export default {
           position: this.labelPosition,
           fontWeight: 'bold',
           lineHeight: 14,
-          formatter(val) {
-            return val.data.label || val.name + '\n' + val.percent + '%'
-          },
+          alignTo: 'labelLine',
+          bleedMargin: 20,
+          // formatter(val) {
+          //   return val.data.label || val.name + '\n' + val.percent + '%'
+          // },
         },
         labelLine: {
           normal: {
@@ -196,9 +198,8 @@ export default {
     },
     getSeriesData() {
       let result = null
-      if (this.listResult) {
-        result = this.listResult[0].data
-      }
+      result = this.listResult[0].data
+
       return result
     },
     /* 事件 */
@@ -208,11 +209,34 @@ export default {
     click(val) {
       this.$emit('click', val)
     },
+    getColors(key) {
+      let start = 200
+      let end = 280
+      let length = this.list.find(d => d.type === key)?.data.length
+      // let result =
+      //   this.list.find(d => d.type === key)?.data.length > this.colorMIn.length
+      //     ? this.color
+      //     : this.colorMIn
+      let step = ((end - start) / length).toFixed(0)
+
+      return new Array(length).fill('').map((d, i) => `hsl(${(start + step * i) % 360},100%,50%)`)
+      // return [
+      //   '#ff4343',
+      //   '#f69846',
+      //   '#f6d54a',
+      //   '#45dbf7',
+      //   '#44aff0',
+      //   '#4777f5',
+      //   '#5045f6',
+      //   '#ad46f3',
+      //   '#f845f1',
+      // ]
+    },
   },
 }
 </script>
 <style lang="scss" scoped>
-.ins-gauge {
+.ins-pie {
   font-size: inherit;
   width: 100%;
   height: 100%;

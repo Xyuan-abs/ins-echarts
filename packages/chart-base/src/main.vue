@@ -5,34 +5,24 @@
 时间：2020年8月21日15:00:42
 -->
 <template>
-  <div class="ins-chart-base">
-    <!-- ins-chart-base -->
-    <ECharts
-      v-if="hasData"
-      ref="echarts"
-      autoresize
-      :options="optionsResult"
-      @click="onClick"
-      @mouseover="mouseover"
-      @mouseout="mouseout"
-      @legendselectchanged="legendselectchanged"
-    />
+  <div class="ins-base">
+    <!-- ins-base -->
+    <ECharts v-if="hasData" ref="echarts" autoresize :options="optionsResult" v-on="$listeners" />
     <div v-else class="no-data">
-      <span>
-        <slot name="empty">
+      <slot name="empty">
+        <span>
           {{ emptyText }}
-        </slot>
-      </span>
+        </span>
+      </slot>
     </div>
   </div>
 </template>
 <script>
-import ECharts from 'vue-echarts'
 import merge from 'lodash/merge'
 
 export default {
-  name: 'InsChartBase',
-  components: { ECharts },
+  name: 'InsBase',
+  components: {},
   props: {
     options: { type: Object, default: null }, //自定义options
     hasData: { type: Boolean, default: false }, //有无数据
@@ -62,27 +52,17 @@ export default {
     render() {
       this.optionsResult = merge({}, this.options)
     },
-    onClick(params) {
-      params.event.stop()
-      this.$emit('click', params)
+    onClick(...arg) {
+      this.$emit('click', ...arg)
     },
-    mouseout(params) {
-      this.$emit('mouseout', params)
-    },
-    mouseover(params) {
-      this.$emit('mouseover', params)
-    },
-    legendselectchanged(params) {
-      this.$emit('legendselectchanged', params)
-    },
-    dispatchAction(params) {
-      this.$refs.echarts.dispatchAction(params)
+    dispatchAction(...arg) {
+      this.$refs.echarts.dispatchAction(...arg)
     },
   },
 }
 </script>
 <style lang="scss" scoped>
-.ins-chart-base {
+.ins-base {
   font-size: inherit;
   width: 100%;
   height: 100%;

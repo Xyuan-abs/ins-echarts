@@ -1,40 +1,41 @@
 <!--
-名称：ins-chart-pie-nested
+名称：ins-pie-nested
 版本：1.0.0
 作者：谢元将
 时间：2020年8月31日10:24:34
 
 -->
 <template>
-  <div class="ins-chart-pie-nested">
-    <ins-chart-base
+  <div class="ins-pie-nested">
+    <ins-base
       ref="ChartBase"
       :has-data="hasData"
       :empty-text="emptyText"
       :options="optionsResult"
-      @click="click"
-      @legendselectchanged="legendselectchanged"
+      v-on="$listeners"
     >
       <template v-slot:empty>
         <slot name="empty"> </slot>
       </template>
-    </ins-chart-base>
+    </ins-base>
   </div>
 </template>
 <script>
 /* echarts图表相关 */
-import InsChartBase from '../../chart-base/src/main'
+import InsBase from '../../chart-base/src/main'
 
-import { optionsBase, getTooltipFmt } from '../../../utils/echartsConfig'
+import { optionsBase, setTooltip, colors, setMore } from '@utils/config/common'
+import { hex2Rgb, rgb2Hsl } from '@utils/color'
+import { setTitle, setDefaultSeries } from '@utils/config/pie'
 
 /* lodash 按需引入 */
 import merge from 'lodash/merge'
 import cloneDeep from 'lodash/cloneDeep'
 
 export default {
-  name: 'InsChartPieNested',
+  name: 'InsPieNested',
   components: {
-    InsChartBase,
+    InsBase,
   },
   props: {
     list: {
@@ -79,17 +80,7 @@ export default {
       },
     }, //data
     options: { type: Object, default: () => ({}) }, //自定义options
-    colors: {
-      type: Array,
-      default: () => [
-        'hsl(210, 100%, 51.6%)',
-        'hsl(3, 100.0%, 68.4%)',
-        'hsl(32, 92.2%, 54.7%)',
-        'hsl(126, 75.4%, 46.3%)',
-        'hsl(168, 100.0%, 37.1%)',
-        'hsl(187, 100.0%, 41.6%)',
-      ],
-    }, //颜色表  link模式只支持hsl格式
+    colors: { type: Array, default: () => colors }, //颜色表  link模式只支持hsl格式
     isLink: { type: Boolean, default: true }, //内外颜色是否同一色系
     showLegend: { type: Boolean, default: true }, //是否显示legend
     legendPosition: { type: String, default: 'left' }, //legend位置
@@ -129,21 +120,16 @@ export default {
     render() {
       const options = {
         color: this.colors,
-        tooltip: Object.assign(
-          {
-            trigger: 'item', //'axis'
-          },
-          getTooltipFmt('item')
-        ),
+        tooltip: setTooltip('item'),
         legend: {
-          show: this.showLegend,
+          show: true,
           orient: 'vertical',
-          left: this.legendPosition,
+          left: 'left',
           data: this.getLegendData(),
         },
         series: [
           {
-            name: this.listResult[0].name,
+            name: 'inner',
             type: 'pie',
             radius: [0, '40%'],
             label: {
@@ -159,7 +145,7 @@ export default {
             data: this.getSeriesData('inner'),
           },
           {
-            name: '',
+            name: 'outer',
             type: 'pie',
             radius: ['50%', '68%'],
             center: ['50%', '50%'],
@@ -247,35 +233,42 @@ export default {
       }
       return result
     },
-    setGradientColor(color, length) {
-      if (!color.startsWith('hsl(')) {
-        console.error('PieNested link模型的colors目前只支持hsl格式')
-        return new Array(length).fill(color)
+    color2hsl(color) {
+      color = color.toLowerCase()
+
+      if (color.startsWith('hsl')) {
+        return color
+      } else if (color.startsWith('#')) {
+        color = hex2Rgb(color)
       }
-      let [h, s, l] = color.split(',')
-      let lnum = Number(l.split('%)')[0])
+      let res = rgb2Hsl(color)
+      return res
+    },
+    setGradientColor(color, length) {
+      /* 转换颜色格式为hsl */
+      color = this.color2hsl(color)
+
+      /* 设置渐变颜色 */
+      let [h, s, l] = color.replace(/(?:\(|\)|hsl|HSL|%)*/g, '').split(',')
+      let lnum = Number(l)
 
       let step = ((100 - lnum) / length).toFixed(2)
       let result = []
       for (let i = 0; i < length; i++) {
-        let hsl = `${h},${s},${(lnum + step * i).toFixed(2)}%)`
+        let hsl = `hsl(${h},${s}%,${(lnum + step * i).toFixed(2)}%)`
         result.push(hsl)
       }
-
       return result
     },
     /* 事件 */
-    legendselectchanged(val) {
-      this.$emit('legendselectchanged', val)
-    },
-    click(val) {
-      this.$emit('click', val)
+    dispatchAction(...arg) {
+      this.$refs.ChartBase.dispatchAction(...arg)
     },
   },
 }
 </script>
 <style lang="scss" scoped>
-.ins-chart-pie-nested {
+.ins-pie-nested {
   font-size: inherit;
   width: 100%;
   height: 100%;

@@ -1,5 +1,5 @@
 <!--
-名称：ins-chart-double-y
+名称：ins-double-y
 版本：1.0.0
 作者：谢元将
 时间：2020年8月24日11:41:13 
@@ -14,102 +14,63 @@
       }]
 -->
 <template>
-  <div class="ins-chart-single-y">
-    <ins-chart-base
+  <div class="ins-single-y">
+    <ins-base
       ref="ChartBase"
       :has-data="hasData"
       :empty-text="emptyText"
       :options="optionsResult"
-      @click="click"
-      @legendselectchanged="legendselectchanged"
+      v-on="$listeners"
     >
       <template v-slot:empty>
         <slot name="empty"> </slot>
       </template>
-    </ins-chart-base>
+    </ins-base>
   </div>
 </template>
 <script>
 /* echarts图表相关 */
-import InsChartBase from '../../chart-base/src/main'
+import InsBase from '../../chart-base/src/main'
 
-import {
-  completionX,
-  setColorOpacity,
-  setColor,
-  fmtUnit,
-  calMax,
-  calMin,
-} from '../../../utils/common'
+import { props, hasData } from '@mixins'
+
+import { formatList, setColor, getUnit, calMax, calMin } from '@utils/common'
 
 import {
   optionsBase,
-  colors,
   setDataZoom,
   setTooltip,
   setAxisX,
   setAxisY,
   setStack,
   setMore,
-} from '../../../utils/config/common'
+} from '@utils/config/common'
 
-import {
-  seriesLine,
-  setLineType,
-  setLineShape,
-  setLineColor,
-  setLineBg,
-} from '../../../utils/config/line'
+import { seriesLine, setLineType, setLineShape, setLineColor, setLineBg } from '@utils/config/line'
 
-import {
-  seriesBar,
-  setBarLabel,
-  setBarItem,
-  setBarWidth,
-  setBarBg,
-} from '../../../utils/config/bar'
+import { seriesBar, setBarLabel, setBarItem, setBarWidth, setBarBg } from '@utils/config/bar'
 
-import { seriesScatter, setScatterSymbol, setScatterColor } from '../../../utils/config/scatter'
+import { seriesScatter, setScatterSymbol, setScatterColor } from '@utils/config/scatter'
 
 import {
   seriesPictorialBar,
   setPictorialBarSymbol,
   setPictorialBarItem,
-} from '../../../utils/config/pictorialBar'
+} from '@utils/config/pictorialBar'
 
 /* lodash 按需引入 */
 import merge from 'lodash/merge'
 
 export default {
-  name: 'InsChartDoubleY',
+  name: 'InsDoubleY',
   components: {
-    InsChartBase,
+    InsBase,
   },
+  mixins: [props, hasData],
   props: {
-    list: {
-      type: Array,
-      default() {
-        return [
-          // {
-          //   name: '平均',
-          //   data: [
-          //     { name: '1月', value: 10, max: 12, min: 8 },
-          //     { name: '2月', value: 14, max: 16, min: 12 },
-          //     { name: '3月', value: 9, max: 11, min: 7 },
-          //     { name: '4月', value: 14, max: 16, min: 12 }
-          //   ],
-          //   type: 'line',
-          // }
-        ]
-      },
-    },
-    options: { type: Object, default: () => ({}) }, //自定义options
-    colors: { type: Array, default: () => colors }, //颜色表
     unit: { type: Array, default: () => [] }, //单位
-    isSort: { type: Boolean, default: true }, //是否适用sort函数进行排序
-    hasZoom: { type: Boolean, default: false }, //是否有缩放
+    sort: { type: [String, Function], default: null }, //是否适用sort函数进行排序 string->date按日期排序
     tooltipTrigger: { type: String, default: 'axis' }, //tooltip的触发方式
-    emptyText: { type: String, default: '暂无数据' }, //没有数据时显示的提示文字
   },
   data() {
     return {
@@ -136,12 +97,12 @@ export default {
   },
   methods: {
     init() {
-      if (this.list?.length) {
-        /* 格式化list  补全data */
-        this.listResult = completionX(this.list, this.isSort)
-        /* 配置echarts图表 */
-        this.render()
-      }
+      /* 无数据则不渲染 */
+      if (!this.hasData) return false
+      /* 格式化list  补全data */
+      this.listResult = formatList(this.list, this.sort, this.isNullZero)
+      /* 配置echarts图表 */
+      this.render()
     },
     render() {
       const arr1 = this.listResult.filter(item => item.yAxisIndex === 0)
@@ -155,9 +116,9 @@ export default {
           data: this.getLegendData(),
         },
         tooltip: setTooltip(this.tooltipTrigger),
-        xAxis: setAxisX(this.getXAxisData(), this.hasZoom),
+        xAxis: setAxisX(this.getXAxisData(), this.unit, false, this.hasZoom),
         yAxis: [
-          merge(setAxisY(this.unit[0]), {
+          merge(setAxisY([], this.unit[0]), {
             nameTextStyle: {
               padding: [0, -40, 0, 0],
             },
@@ -196,21 +157,11 @@ export default {
     },
     /* 设置序列 */
     getSeries() {
-      const result = []
-      this.listResult.forEach((item, index) => {
-        result.push(
-          merge({}, this.getSerieItem(item, index), {
-            name: item.name,
-            data: item.data,
-            yAxisIndex: item.yAxisIndex,
-          })
-        )
-      })
-      return result
+      return this.listResult.map((item, index) => this.setSeriesItem(item, index))
     },
-    getSerieItem(item, index) {
-      let type = item.type || 'line'
-      let color = item.color || this.colors[index % this.colors.length]
+    setSeriesItem(item, index) {
+      let colors = this.colors
+      let { type = 'line', color = colors[index % colors.length] } = item
 
       let result = {}
       /* 四种类型：line、bar、scatter、pictorialBar */
@@ -221,33 +172,45 @@ export default {
         pictorialBar: this.setPictorialBar,
       }
       if (map[type]) {
-        result = map[type](item, color)
+        result = Object.assign(map[type](item, color), {
+          name: item.name,
+          data: this.setSeriesData(item, color),
+          yAxisIndex: item.yAxisIndex,
+        })
       }
-      /* data中携带单个节点特殊配置 */
-      this.setSeriesData(item)
 
       return result
     },
     /* 通过修改seriesData实现单个节点配置 */
     setSeriesData(item) {
-      /* 单个节点配置 */
-      item.data.forEach(d => {
+      let { data } = item
+
+      let result = data.map((d, i) => {
         /* 单位 */
-        d.unit = fmtUnit(this.unit[item.yAxisIndex])
+        let unit = getUnit(this.unit[item.yAxisIndex])
+
+        let { itemStyle = {}, emphasis = {} } = d
+
         /* 自定义单个节点的颜色 */
-        if (d && d.color) {
-          Object.assign(d, {
+        if (d.color) {
+          merge(itemStyle, {
+            color: setColor(d.color),
+          })
+          merge(emphasis, {
             itemStyle: {
               color: setColor(d.color),
             },
-            emphasis: {
-              itemStyle: {
-                color: setColor(d.color),
-              },
-            },
           })
         }
+
+        return Object.assign({}, d, {
+          unit,
+          itemStyle,
+          emphasis,
+        })
       })
+
+      return result
     },
     setLine(item, color) {
       let bgColor = item.withBg ? (item.bgColor ? item.bgColor : color) : null
@@ -299,37 +262,14 @@ export default {
       )
       return result
     },
-    setGradientColor(color, length) {
-      let result = []
-      for (let i = 0; i < length; i++) {
-        result.push(setColorOpacity(color, ((i + 1) / length).toFixed(2)))
-      }
-      return result
-    },
-    /* 事件 */
-    legendselectchanged(val) {
-      let hasSelected = false
-      for (let key in val.selected) {
-        if (val.selected[key]) {
-          hasSelected = true
-        }
-      }
-      if (!hasSelected) {
-        this.$refs.ChartBase.$refs.echarts.dispatchAction({
-          type: 'legendSelect',
-          name: val.name,
-        })
-      }
-      this.$emit('legendselectchanged', val)
-    },
-    click(val) {
-      this.$emit('click', val)
+    dispatchAction(...arg) {
+      this.$refs.ChartBase.dispatchAction(...arg)
     },
   },
 }
 </script>
 <style lang="scss" scoped>
-.ins-chart-single-y {
+.ins-single-y {
   font-size: inherit;
   width: 100%;
   height: 100%;

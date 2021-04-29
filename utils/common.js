@@ -1,11 +1,10 @@
 import cloneDeep from 'loadsh/cloneDeep'
-import ECharts from 'vue-echarts'
 
 /**
- * 获取数组最大值
+ * 获取单位值
  * @param {Array} arr
  */
-export function fmtUnit(unit) {
+export function getUnit(unit) {
   return unit?.split(/:|：/)?.[1] ?? ''
 }
 
@@ -83,33 +82,68 @@ export function setColorOpacity(color, opacity) {
  * @param {String} type
  * @param {Array} derection [0, 0, 0, 1] 左 上 右 下
  */
-export function setColor(color, type = 'Linear', derection = [0, 0, 0, 1]) {
-  const colorArr = Array.isArray(color) ? color : [color, color]
-  if (type === 'Linear') {
-    return new ECharts.graphic.LinearGradient(...derection, [
-      {
-        offset: 0,
-        color: colorArr[0],
-      },
-      {
-        offset: 1,
-        color: colorArr[1],
-      },
-    ])
-  } else if (type === 'Radial') {
-    return new ECharts.graphic.RadialGradient(0.4, 0.3, 1, [
-      {
-        offset: 0,
-        color: colorArr[0],
-      },
-      {
-        offset: 1,
-        color: colorArr[1],
-      },
-    ])
+export function setColor(color, type = 'linear', derection = [0, 0, 0, 1]) {
+  let colorType = Object.prototype.toString.call(color)
+  if (colorType === '[object Array]') {
+    const [startColor, endColor] = color
+    if (type === 'linear') {
+      let [x, y, x2, y2] = derection
+      return {
+        type: 'linear',
+        x,
+        y,
+        x2,
+        y2,
+        colorStops: [
+          {
+            offset: 0,
+            color: startColor, // 0% 处的颜色
+          },
+          {
+            offset: 1,
+            color: endColor, // 100% 处的颜色
+          },
+        ],
+        globalCoord: false, // 缺省为 false
+      }
+    } else if (type === 'radial') {
+      let [x, y, r] = derection
+      return {
+        type: 'linear',
+        x,
+        y,
+        r,
+        colorStops: [
+          {
+            offset: 0,
+            color: startColor, // 0% 处的颜色
+          },
+          {
+            offset: 1,
+            color: endColor, // 100% 处的颜色
+          },
+        ],
+        globalCoord: false, // 缺省为 false
+      }
+    } else {
+      return Array.isArray(color) ? color[0] : color
+    }
   } else {
-    return Array.isArray(color) ? color[0] : color
+    return color
   }
+}
+
+/**
+ * 设置颜色
+ * @param {String|Array} color
+ * @param {Number} length
+ */
+export function getGradientColorList(color, length) {
+  let result = []
+  for (let i = 0; i < length; i++) {
+    result.push(setColorOpacity(color, ((i + 1) / length).toFixed(2)))
+  }
+  return result
 }
 
 /**
@@ -150,39 +184,44 @@ export function format(dateValue, fmt) {
 }
 
 /**
- * 格式化数组（补全x轴） 排序
+ * 格式化数组 排序
  * @param {Array} list
  */
-export function completionX(list, isSort) {
+export function formatList(list, sort, isNullZero) {
   if (!Array.isArray(list)) {
-    console.error('completionX的参数必须为数组')
+    console.error('formatList的参数必须为数组')
     return []
   }
 
   let res = cloneDeep(list)
   /* 获取到所有data里的name */
-  let all = res.reduce((prev, cur) => {
+  let allNames = res.reduce((prev, cur) => {
     let names = cur.data.map(d => d.name)
     return prev.concat(names)
   }, [])
   /* 去重 */
-  let filter = Array.from(new Set(all))
+  let filterName = Array.from(new Set(allNames))
   /* 排序 */
-  if (isSort) {
-    filter.sort()
+  if (sort) {
+    if (Object.prototype.toString.call(sort) === '[object Function]') {
+      filterName.sort(sort)
+    } else {
+      if (sort === 'date') {
+        filterName.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+      } else {
+        console.warn('快速排序目前只支持date排序')
+      }
+    }
   }
   /* 补全 */
   res.forEach(d => {
-    if (d.data.length !== filter.length) {
-      filter.forEach((v, i) => {
-        if (!d.data.find(o => o.name === v)) {
-          d.data.splice(i, 0, {
-            name: v,
-            value: null,
-          })
-        }
-      })
-    }
+    d.data = filterName.map(v => {
+      let value = d.data.find(o => o.name === v)?.value ?? (isNullZero ? 0 : null)
+      return {
+        name: v,
+        value,
+      }
+    })
   })
 
   return res

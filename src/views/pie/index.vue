@@ -1,16 +1,16 @@
 <template>
   <div class="pie-box flex">
     <card-panel :title="'Pie'" class="pie" :code="list">
-      <ins-chart-pie :list="list" :title="'标题\n2020年8月31日'" :options="options"></ins-chart-pie>
+      <ins-pie :list="list" :title="'标题\n2020年8月31日'"></ins-pie>
     </card-panel>
     <card-panel :title="'内嵌pie'" class="pie-nested" :code="listNested">
-      <ins-chart-pie-nested :list="listNested"></ins-chart-pie-nested>
+      <ins-pie-nested :list="listNested"></ins-pie-nested>
     </card-panel>
     <card-panel :title="'玫瑰图'" class="pie-nested" :code="listRose">
-      <ins-chart-pie-rose :list="listRose"></ins-chart-pie-rose>
+      <ins-pie-rose :list="listRose" @click="click"></ins-pie-rose>
     </card-panel>
     <card-panel :title="'玉玦图'" class="pie-nested" :code="listYujue">
-      <ins-chart-pie-yujue :list="listYujue"></ins-chart-pie-yujue>
+      <ins-pie-yujue :list="listYujue" @click="click"></ins-pie-yujue>
     </card-panel>
   </div>
 </template>
@@ -118,6 +118,11 @@ export default {
         },
       ],
     }
+  },
+  methods: {
+    click(...arg) {
+      console.log(...arg)
+    },
   },
 }
 </script>

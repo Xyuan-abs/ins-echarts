@@ -1,22 +1,22 @@
 <template>
   <div class="others flex">
     <card-panel :title="'AngleBar'" :code="AngleBarList">
-      <ins-chart-angle-bar :list="AngleBarList"></ins-chart-angle-bar>
+      <ins-angle-bar :list="AngleBarList"></ins-angle-bar>
     </card-panel>
     <card-panel :title="'Radar'" class="radar" :code="RadarList">
-      <ins-chart-radar :list="RadarList"></ins-chart-radar>
+      <ins-radar :list="RadarList"></ins-radar>
     </card-panel>
     <card-panel :title="'Treemap'" class="radar" :code="TreemapList">
-      <ins-chart-treemap :list="TreemapList"></ins-chart-treemap>
+      <ins-treemap :list="TreemapList"></ins-treemap>
     </card-panel>
     <card-panel :title="'process'" class="process" :code="ProcessList">
-      <ins-chart-process :list="ProcessList"></ins-chart-process>
+      <ins-process :list="ProcessList"></ins-process>
     </card-panel>
     <card-panel :title="'map'" class="process" :code="ProcessList">
-      <ins-chart-base :has-data="true" :options="options" />
+      <ins-base :has-data="true" :options="options" />
     </card-panel>
     <card-panel :title="'doubleY'" class="process" :code="ProcessList">
-      <ins-chart-double-y :list="doubleList" :unit="['单位：个', '单位：人']" />
+      <ins-double-y :list="doubleList" :unit="['单位：个', '单位：人']" />
     </card-panel>
   </div>
 </template>

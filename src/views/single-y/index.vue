@@ -1,13 +1,19 @@
 <template>
   <div class="single-y flex">
     <card-panel v-for="(d, i) in list" :key="i" :code="d">
-      <ins-chart-single-y
+      <ins-single-y
         :list="d"
-        :is-row="d[0].isRow"
+        :is-row="(d[0] || {}).isRow"
         :unit="unit"
-        :hidden-axis-line="d[0].hiddenAxisLine"
+        :hidden-axis-line="(d[0] || {}).hiddenAxisLine"
         :options="options"
-      ></ins-chart-single-y>
+        @click="click"
+        @legendselectchanged="legendselectchanged"
+        :sort="'date'"
+        ref="a"
+      >
+        <template #empty></template>
+      </ins-single-y>
     </card-panel>
   </div>
 </template>
@@ -24,19 +30,77 @@ export default {
   data() {
     return {
       unit: '单位：个',
+
       list: [
+        [
+          {
+            name: '离线工作流',
+            key: '0',
+            data: [
+              {
+                name: '2021-02-07',
+                value: 12,
+              },
+              {
+                name: '2021-02-06',
+                value: 10,
+              },
+            ],
+            type: 'line',
+          },
+          {
+            name: '流式任务',
+            key: '1',
+            data: [
+              {
+                name: '2021-02-07',
+                value: 22,
+              },
+              {
+                name: '2021-02-06',
+                value: 30,
+              },
+            ],
+            type: 'line',
+          },
+          {
+            name: '项目',
+            key: '3',
+            data: [
+              {
+                name: '2021-02-07',
+                value: 25,
+              },
+              {
+                name: '2021-02-06',
+                value: 20,
+              },
+            ],
+            type: 'line',
+          },
+        ],
         [
           {
             name: 'line',
             data: [
-              { name: '1月', value: 7 },
-              { name: '2月', value: 10 },
-              { name: '3月', value: 13 },
-              { name: '4月', value: 10 },
-              { name: '5月', value: 13 },
-              { name: '6月', value: 10 },
+              { name: '2021-03-03', value: 7 },
+              { name: '2021-02-26', value: 10 },
+              // { name: '3月', value: 13 },
+              // { name: '4月', value: 10 },
+              // { name: '5月', value: 13 },
+              // { name: '6月', value: 10 },
             ],
             type: 'line',
+            seriesConfig: color => {
+              return {
+                itemStyle: {
+                  color: '#7658ff',
+                },
+                lineStyle: {
+                  color: '#7658ff',
+                },
+              }
+            },
           },
           {
             name: 'lineSmooth',
@@ -153,7 +217,7 @@ export default {
               { name: '1月', value: 10, color: '#0885ff' },
               { name: '2月', value: 14, color: '#ff9c26' },
               { name: '3月', value: 9, color: '#00cea6' },
-              { name: '4月', value: 14, color: '#0885ff' },
+              { name: '4月', value: 14, color: ['#05cfd7', '#7659ff'] },
             ],
             type: 'bar',
             isRow: true,
@@ -252,6 +316,12 @@ export default {
             isGradient: true,
           },
         ],
+        [
+          // {
+          //   name: 'pictorialBar',
+          //   data: [{ name: '1月', value: 8 }],
+          // },
+        ],
       ],
       options: {
         // legend: {
@@ -281,6 +351,22 @@ export default {
         // },
       },
     }
+  },
+  mounted() {
+    // this.$nextTick(() => {
+    //   this.$refs.a[0].dispatchAction({
+    //     type: 'legendUnSelect',
+    //     name: 'line',
+    //   })
+    // })
+  },
+  methods: {
+    click(...arg) {
+      console.log('click -> arg', ...arg)
+    },
+    legendselectchanged(...arg) {
+      console.log('legendselectchanged -> arg', ...arg)
+    },
   },
 }
 </script>

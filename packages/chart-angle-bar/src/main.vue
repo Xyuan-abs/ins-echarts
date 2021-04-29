@@ -1,38 +1,38 @@
 <!--
-名称：ins-chart-angle-bar
+名称：ins-angle-bar
 版本：1.0.0
 作者：谢元将
 时间：2020年8月28日14:48:23
 -->
 <template>
-  <div class="ins-chart-angle-bar">
-    <ins-chart-base
+  <div class="ins-angle-bar">
+    <ins-base
       ref="ChartBase"
       :has-data="hasData"
       :empty-text="emptyText"
       :options="optionsResult"
-      @click="click"
+      v-on="$listeners"
     >
       <template v-slot:empty>
         <slot name="empty"> </slot>
       </template>
-    </ins-chart-base>
+    </ins-base>
   </div>
 </template>
 <script>
 /* echarts图表相关 */
-import InsChartBase from '../../chart-base/src/main'
+import InsBase from '../../chart-base/src/main'
 
-import { optionsBase, getTooltipFmt } from '../../../utils/echartsConfig'
-import { setColorOpacity } from '../../../utils/common'
+import { optionsBase, getTooltipFmt } from '@utils/echartsConfig'
+import { setColorOpacity } from '@utils/common'
 
 /* lodash 按需引入 */
 import merge from 'lodash/merge'
 import cloneDeep from 'lodash/cloneDeep'
 
 export default {
-  name: 'InsChartAngleBar',
-  components: { InsChartBase },
+  name: 'InsAngleBar',
+  components: { InsBase },
   props: {
     list: {
       type: Array,
@@ -242,14 +242,15 @@ export default {
       })
       return result
     },
-    click(val) {
-      this.$emit('click', val)
+    /* 事件 */
+    dispatchAction(...arg) {
+      this.$refs.ChartBase.dispatchAction(...arg)
     },
   },
 }
 </script>
 <style lang="scss" scoped>
-.ins-chart-angle-bar {
+.ins-angle-bar {
   font-size: inherit;
   width: 100%;
   height: 100%;

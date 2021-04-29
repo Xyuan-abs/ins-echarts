@@ -1,4 +1,4 @@
-// 点状图
+// 散点图
 export const seriesScatter = {
   type: 'scatter',
   data: [],
@@ -7,7 +7,7 @@ export const seriesScatter = {
 }
 
 /**
- * 点状图symbol
+ * 散点图symbol
  * @param {String} symbol
  */
 export function setScatterSymbol(symbol) {
@@ -17,7 +17,17 @@ export function setScatterSymbol(symbol) {
 }
 
 /**
- * 点状图color
+ * 散点图symbol size
+ * @param {Number} size
+ */
+export function setScatterSize(symbolSize) {
+  return {
+    symbolSize: symbolSize || 10,
+  }
+}
+
+/**
+ * 散点图color
  * @param {String} color
  */
 export function setScatterColor(color) {

@@ -1,32 +1,31 @@
 <!--
-名称：ins-chart-treemap
+名称：ins-treemap
 版本：1.0.0
 作者：谢元将
 时间：2020年8月24日11:41:13 
 -->
 <template>
-  <div class="ins-chart-treemap">
-    <ins-chart-base
+  <div class="ins-treemap">
+    <ins-base
       ref="ChartBase"
       :has-data="hasData"
       :empty-text="emptyText"
       :options="optionsResult"
-      @click="click"
-      @legendselectchanged="legendselectchanged"
+      v-on="$listeners"
     >
       <template v-slot:empty>
         <slot name="empty"> </slot>
       </template>
-    </ins-chart-base>
+    </ins-base>
   </div>
 </template>
 <script>
 /* echarts图表相关 */
-import InsChartBase from '../../chart-base/src/main'
+import InsBase from '../../chart-base/src/main'
 
-import { optionsBase, getTooltipFmt } from '../../../utils/echartsConfig'
-import { colors } from '../../../utils/echartsCommon'
-import { fmtUnit } from '../../../utils/common'
+import { optionsBase, getTooltipFmt } from '@utils/echartsConfig'
+import { colors } from '@utils/echartsCommon'
+import { getUnit } from '@utils/common'
 
 /* lodash 按需引入 */
 import merge from 'lodash/merge'
@@ -43,9 +42,9 @@ const defaultTreemapConfig = {
 }
 
 export default {
-  name: 'InsChartTreemap',
+  name: 'InsTreemap',
   components: {
-    InsChartBase,
+    InsBase,
   },
   props: {
     title: { type: String, default: null }, //标题
@@ -68,7 +67,6 @@ export default {
     options: { type: Object, default: () => ({}) }, //自定义options
     colors: { type: Array, default: () => colors }, //颜色表
     showLegend: { type: Boolean, default: true }, //是否显示legend
-
     unit: { type: String, default: '单位：万元' }, //单位
     emptyText: { type: String, default: '暂无数据' }, //没有数据时显示的提示文字
   },
@@ -140,7 +138,7 @@ export default {
         label: {
           lineHeight: 16,
           formatter: params => {
-            return params.name + '：' + params.value + (this.unit ? fmtUnit(this.unit) : '')
+            return params.name + '：' + params.value + (this.unit ? getUnit(this.unit) : '')
           },
         },
         data: this.getSeriesData(),
@@ -158,17 +156,14 @@ export default {
       return result
     },
     /* 事件 */
-    legendselectchanged(val) {
-      this.$emit('legendselectchanged', val)
-    },
-    click(val) {
-      this.$emit('click', val)
+    dispatchAction(...arg) {
+      this.$refs.ChartBase.dispatchAction(...arg)
     },
   },
 }
 </script>
 <style lang="scss" scoped>
-.ins-chart-treemap {
+.ins-treemap {
   font-size: inherit;
   width: 100%;
   height: 100%;

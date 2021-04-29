@@ -40,30 +40,31 @@ export const optionsBase = {
 }
 
 // 颜色表
-export const colors = [
-  '#0885ff',
-  '#ff9c26',
-  '#00CEA6',
-  '#FF665E',
-  '#1dcf2f',
-  '#fe7dea',
-  '#40b4fd',
-  '#ff665e',
-  '#546cff',
-  '#ebcb5c',
-  '#00bd98',
-  '#ab67ff',
-  '#219173',
-  '#ff5722',
-  '#4e97b2',
-  '#ff71b4',
-  '#43a047',
-  '#db3c37',
-  '#9ea2ab',
-  '#2b7aab',
-  '#00bcd4',
-  '#7681EB',
-]
+// export const colors = [
+//   '#0885ff',
+//   '#ff9c26',
+//   '#00CEA6',
+//   '#FF665E',
+//   '#1dcf2f',
+//   '#fe7dea',
+//   '#40b4fd',
+//   '#ff665e',
+//   '#546cff',
+//   '#ebcb5c',
+//   '#00bd98',
+//   '#ab67ff',
+//   '#219173',
+//   '#ff5722',
+//   '#4e97b2',
+//   '#ff71b4',
+//   '#43a047',
+//   '#db3c37',
+//   '#9ea2ab',
+//   '#2b7aab',
+//   '#00bcd4',
+//   '#7681EB',
+// ]
+export const colors = ['#0885ff', '#ff665e', '#f69421', '#1dcf2f', '#00bd98', '#00bcd4']
 
 /**
  * tooltip触发条件
@@ -95,7 +96,7 @@ export function setTooltip(trigger) {
  * @param {Boolean} hasZoom
  * @param {Boolean} isRow
  */
-export function setAxisX(data, hasZoom, isRow) {
+export function setAxisX(data, unit, isRow, max, min, hasZoom) {
   let res = {
     type: 'category',
     axisLine: {
@@ -120,7 +121,17 @@ export function setAxisX(data, hasZoom, isRow) {
   }
   if (isRow) {
     Object.assign(res, {
+      name: unit,
+      nameLocation: 'end',
+      nameTextStyle: {
+        color: '#8996a9',
+        padding: [0, 0, -35, 0],
+      },
+      nameGap: 15,
       type: 'value',
+      max,
+      min,
+      interval: (max - min) / 5,
       data: null,
     })
   }
@@ -133,7 +144,7 @@ export function setAxisX(data, hasZoom, isRow) {
  * @param {Boolean} isRow
  * @param {Boolean} getDataFun
  */
-export function setAxisY(unit, isRow, data) {
+export function setAxisY(data, unit, isRow, max, min) {
   let res = {
     name: unit,
     nameLocation: 'end',
@@ -155,11 +166,20 @@ export function setAxisY(unit, isRow, data) {
         color: '#efefef',
       },
     },
+
+    interval: (max - min) / 5,
     type: 'value',
     data: null,
   }
+  if (!isRow) {
+    Object.assign(res, {
+      max,
+      min,
+    })
+  }
   if (isRow) {
     Object.assign(res, {
+      name: '',
       type: 'category',
       data: data,
     })
@@ -236,8 +256,8 @@ export function setMore(seriesConfig, ...arg) {
   let res = {}
   if (!seriesConfig) return res
   /* 判断参数类型 */
-  let type = Object.prototype.toString().call(seriesConfig)
-  if (type === '[object Array]') {
+  let type = Object.prototype.toString.call(seriesConfig)
+  if (type === '[object Function]') {
     res = seriesConfig(...arg)
   } else if (type === '[object Object]') {
     res = seriesConfig

@@ -8,14 +8,14 @@ import PieRose from './chart-pie-rose'
 import PieYujue from './chart-pie-yujue'
 import Radar from './chart-radar'
 import Treemap from './chart-treemap'
-import Process from './chart-process'
+// import Process from './chart-process'
 
 /* echarts vue-echarts引入 */
-import 'echarts'
+// import 'echarts'
 
-import ECharts from 'vue-echarts'
-import china from 'echarts/map/json/china.json'
-ECharts.registerMap('china', china)
+// import ECharts from 'vue-echarts'
+// import china from 'echarts/map/json/china.json'
+// ECharts.registerMap('china', china)
 /* 按需引入 */
 
 const components = [
@@ -29,7 +29,7 @@ const components = [
   PieYujue,
   Radar,
   Treemap,
-  Process,
+  // Process,
 ]
 
 const install = function(Vue) {
@@ -54,5 +54,5 @@ export default {
   PieYujue,
   Radar,
   Treemap,
-  Process,
+  // Process,
 }

@@ -1,39 +1,38 @@
 <!--
-名称：ins-chart-radar
+名称：ins-radar
 版本：1.0.0
 作者：谢元将
 时间：2020年8月24日11:41:13 
 -->
 <template>
-  <div class="ins-chart-radar">
-    <ins-chart-base
+  <div class="ins-radar">
+    <ins-base
       ref="ChartBase"
       :has-data="hasData"
       :empty-text="emptyText"
       :options="optionsResult"
-      @click="click"
-      @legendselectchanged="legendselectchanged"
+      v-on="$listeners"
     >
       <template v-slot:empty>
         <slot name="empty"> </slot>
       </template>
-    </ins-chart-base>
+    </ins-base>
   </div>
 </template>
 <script>
 /* echarts图表相关 */
-import InsChartBase from '../../chart-base/src/main'
+import InsBase from '../../chart-base/src/main'
 
-import { optionsBase, getTooltipFmt } from '../../../utils/echartsConfig'
-import { colors } from '../../../utils/echartsCommon'
+import { optionsBase, getTooltipFmt } from '@utils/echartsConfig'
+import { colors } from '@utils/echartsCommon'
 /* lodash 按需引入 */
 import merge from 'lodash/merge'
 import cloneDeep from 'lodash/cloneDeep'
 
 export default {
-  name: 'InsChartRadar',
+  name: 'InsRadar',
   components: {
-    InsChartBase,
+    InsBase,
   },
   props: {
     title: { type: String, default: null }, //标题
@@ -251,17 +250,14 @@ export default {
       return result
     },
     /* 事件 */
-    legendselectchanged(val) {
-      this.$emit('legendselectchanged', val)
-    },
-    click(val) {
-      this.$emit('click', val)
+    dispatchAction(...arg) {
+      this.$refs.ChartBase.dispatchAction(...arg)
     },
   },
 }
 </script>
 <style lang="scss" scoped>
-.ins-chart-radar {
+.ins-radar {
   font-size: inherit;
   width: 100%;
   height: 100%;

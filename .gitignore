@@ -2,6 +2,7 @@
 node_modules
 dist
 *.map
+lib/
 
 
 # local env files

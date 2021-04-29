@@ -1,40 +1,39 @@
 <!--
-名称：ins-chart-pie-rose
+名称：ins-pie-rose
 版本：1.0.0
 作者：谢元将
 时间：2020年8月31日10:24:34
 
 -->
 <template>
-  <div class="ins-chart-pie-rose">
-    <ins-chart-base
+  <div class="ins-pie-rose">
+    <ins-base
       ref="ChartBase"
       :has-data="hasData"
       :empty-text="emptyText"
       :options="optionsResult"
-      @click="click"
-      @legendselectchanged="legendselectchanged"
+      v-on="$listeners"
     >
       <template v-slot:empty>
         <slot name="empty"> </slot>
       </template>
-    </ins-chart-base>
+    </ins-base>
   </div>
 </template>
 <script>
 /* echarts图表相关 */
-import InsChartBase from '../../chart-base/src/main'
+import InsBase from '../../chart-base/src/main'
 
-import { optionsBase, getTooltipFmt } from '../../../utils/echartsConfig'
+import { optionsBase, getTooltipFmt } from '@utils/echartsConfig'
 
 /* lodash 按需引入 */
 import merge from 'lodash/merge'
 import cloneDeep from 'lodash/cloneDeep'
 
 export default {
-  name: 'InsChartPieRose',
+  name: 'InsPieRose',
   components: {
-    InsChartBase,
+    InsBase,
   },
   props: {
     list: {
@@ -194,22 +193,21 @@ export default {
         }
       }
       if (flag) {
-        this.$refs.ChartBase.dispatchAction({
+        this.dispatchAction({
           type: 'legendSelect',
           // 图例名称
           name: val.name,
         })
       }
-      this.$emit('legendselectchanged', val)
     },
-    click(val) {
-      this.$emit('click', val)
+    dispatchAction(...arg) {
+      this.$refs.ChartBase.dispatchAction(...arg)
     },
   },
 }
 </script>
 <style lang="scss" scoped>
-.ins-chart-pie-rose {
+.ins-pie-rose {
   font-size: inherit;
   width: 100%;
   height: 100%;

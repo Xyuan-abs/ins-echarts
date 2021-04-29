@@ -57,7 +57,7 @@ export function setLineColor(color) {
   let res = {}
   if (color) {
     res = {
-      color: setColor(color, 'Linear', [0, 0, 1, 0]),
+      color: setColor(color, 'linear', [0, 0, 1, 0]),
     }
   }
   return res
@@ -67,7 +67,7 @@ export function setLineColor(color) {
  * 设置线的背景
  * @param {String} bgColor
  */
-export function setLineBg(bgColor, bgOpacity = 1, isBgGradient = false) {
+export function setLineBg(bgColor, bgOpacity = 0.5, isBgGradient = false) {
   if (!bgColor)
     return {
       areaStyle: null,

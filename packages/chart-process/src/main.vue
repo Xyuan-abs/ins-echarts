@@ -1,32 +1,32 @@
 <!--
-名称：ins-chart-process //进程图
+名称：ins-process //进程图
 版本：1.0.0
 作者：谢元将
 时间：2020年8月28日14:48:23
 -->
 <template>
-  <div class="ins-chart-process">
-    <ins-chart-base
+  <div class="ins-process">
+    <ins-base
       ref="ChartBase"
       :has-data="hasData"
       :empty-text="emptyText"
       :options="optionsResult"
-      @click="click"
+      v-on="$listeners"
     >
       <template v-slot:empty>
         <slot name="empty"> </slot>
       </template>
-    </ins-chart-base>
+    </ins-base>
   </div>
 </template>
 <script>
 /* echarts图表相关 */
-import InsChartBase from '../../chart-base/src/main'
+import InsBase from '../../chart-base/src/main'
 import ECharts from 'vue-echarts'
 
-import { format } from '../../../utils/common'
-import { colors } from '../../../utils/echartsCommon'
-import { optionsBase, getTooltipFmt } from '../../../utils/echartsConfig'
+import { format } from '@utils/common'
+import { colors } from '@utils/echartsCommon'
+import { optionsBase, getTooltipFmt } from '@utils/echartsConfig'
 
 /* lodash 按需引入 */
 import merge from 'lodash/merge'
@@ -34,8 +34,8 @@ import cloneDeep from 'lodash/cloneDeep'
 // let date = Number(new Date().getTime())
 
 export default {
-  name: 'InsChartProcess',
-  components: { InsChartBase },
+  name: 'InsProcess',
+  components: { InsBase },
   props: {
     list: {
       type: Array,
@@ -315,14 +315,15 @@ export default {
       })
       return result
     },
-    click(val) {
-      this.$emit('click', val)
+    /* 事件 */
+    dispatchAction(...arg) {
+      this.$refs.ChartBase.dispatchAction(...arg)
     },
   },
 }
 </script>
 <style lang="scss" scoped>
-.ins-chart-process {
+.ins-process {
   font-size: inherit;
   width: 100%;
   height: 100%;

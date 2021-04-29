@@ -1,6 +1,6 @@
 <!--
-名称：ins-single-y
-版本：1.0.0 
+名称：ins-chart-single-y
+版本：1.0.0
 作者：谢元将
 时间：2020年8月24日11:41:13 
 参数：list[{
@@ -33,35 +33,35 @@
       }]
 -->
 <template>
-  <div class="ins-single-y">
-    <ins-base
+  <div class="ins-chart-single-y">
+    <ins-chart-base
       ref="ChartBase"
       :has-data="hasData"
       :empty-text="emptyText"
       :options="optionsResult"
       v-on="$listeners"
+      @legendselectchanged="legendselectchanged"
     >
       <template v-slot:empty>
         <slot name="empty"> </slot>
       </template>
-    </ins-base>
+    </ins-chart-base>
   </div>
 </template>
 <script>
 /* echarts图表相关 */
-import InsBase from '../../chart-base/src/main'
+import InsChartBase from '../../chart-base/src/main'
 
-import { props, hasData } from '@mixins'
-
-import { formatList, setColor, getUnit, getGradientColorList, calMax, calMin } from '@utils/common'
+import { formatList, setColorOpacity, setColor, getUnit } from '@utils/common'
 
 import {
   optionsBase,
+  colors,
+  setDataZoom,
   setTooltip,
   setAxisX,
   setAxisY,
   setStack,
-  setDataZoom,
   setMore,
 } from '@utils/config/common'
 
@@ -86,15 +86,38 @@ import {
 import merge from 'lodash/merge'
 
 export default {
-  name: 'InsSingleY',
+  name: 'InsChartSingleY',
   components: {
-    InsBase,
+    InsChartBase,
   },
-  mixins: [props, hasData],
   props: {
+    list: {
+      type: Array,
+      default() {
+        return [
+          // {
+          //   name: '平均',
+          //   data: [
+          //     { name: '1月', value: 10, max: 12, min: 8 },
+          //     { name: '2月', value: 14, max: 16, min: 12 },
+          //     { name: '3月', value: 9, max: 11, min: 7 },
+          //     { name: '4月', value: 14, max: 16, min: 12 }
+          //   ],
+          //   type: 'line',
+          //   yAxisIndex: 0,
+          // }
+        ]
+      },
+    },
+    options: { type: Object, default: () => ({}) }, //自定义options
+    colors: { type: Array, default: () => colors }, //颜色表
+    unit: { type: String, default: '' }, //单位
     sort: { type: [String, Function], default: null }, //是否适用sort函数进行排序 string->date按日期排序
     isRow: { type: Boolean, default: false }, //是否为横向，一般作用于柱状图
+    hasZoom: { type: Boolean, default: false }, //是否有缩放
     tooltipTrigger: { type: String, default: 'axis' }, //tooltip的触发方式
+    emptyText: { type: String, default: '暂无数据' }, //没有数据时显示的提示文字
+    isNullZero: { type: Boolean, default: false }, //没有数据时是否展示为0
   },
   data() {
     return {
@@ -102,7 +125,11 @@ export default {
       listResult: [],
     }
   },
-  computed: {},
+  computed: {
+    hasData() {
+      return Boolean(this.list.length && this.list.filter(item => item.data.length).length)
+    },
+  },
   watch: {
     list: {
       handler() {
@@ -117,19 +144,14 @@ export default {
   },
   methods: {
     init() {
-      /* 无数据则不渲染 */
-      if (!this.hasData) return false
-      /* 格式化list  补全data */
-      this.listResult = formatList(this.list, this.sort, this.isNullZero)
-      /* 配置echarts图表 */
-      this.render()
+      if (this.list?.length) {
+        /* 格式化list  补全data */
+        this.listResult = formatList(this.list, this.sort, this.isNullZero)
+        /* 配置echarts图表 */
+        this.render()
+      }
     },
     render() {
-      let list = this.listResult
-      const max = calMax(list)
-      const min = calMin(list)
-      let XData = this.getXAxisData()
-
       const options = {
         grid: {
           right: this.isRow ? 80 : 35,
@@ -138,8 +160,8 @@ export default {
           data: this.getLegendData(),
         },
         tooltip: setTooltip(this.tooltipTrigger),
-        xAxis: setAxisX(XData, this.unit, this.isRow, max, min, this.hasZoom),
-        yAxis: setAxisY(XData, this.unit, this.isRow, max, min),
+        xAxis: setAxisX(this.getXAxisData(), this.unit, this.isRow, this.hasZoom),
+        yAxis: setAxisY(this.getXAxisData(), this.unit, this.isRow),
         series: this.getSeries(),
         dataZoom: setDataZoom(this.hasZoom, this.isRow),
       }
@@ -160,13 +182,22 @@ export default {
     getXAxisData() {
       return this.listResult[0].data?.map(d => d.name) ?? []
     },
-    /* 设置series */
+    /* 设置序列 */
     getSeries() {
-      return this.listResult.map((item, index) => this.setSeriesItem(item, index))
+      const result = []
+      this.listResult.forEach((item, index) => {
+        result.push(
+          merge({}, this.getSerieItem(item, index), {
+            name: item.name,
+            data: item.data,
+          })
+        )
+      })
+      return result
     },
-    setSeriesItem(item, index) {
-      let colors = this.colors
-      let { type = 'line', color = colors[index % colors.length] } = item
+    getSerieItem(item, index) {
+      let type = item.type || 'line'
+      let color = item.color || this.colors[index % this.colors.length]
 
       let result = {}
       /* 四种类型：line、bar、scatter、pictorialBar */
@@ -177,57 +208,51 @@ export default {
         pictorialBar: this.setPictorialBar,
       }
       if (map[type]) {
-        result = Object.assign(map[type](item, color), {
-          name: item.name,
-          data: this.setSeriesData(item, color),
-        })
+        result = map[type](item, color)
       }
+      /* data中携带单个节点特殊配置 */
+      this.setSeriesData(item, color)
+
       return result
     },
     /* 通过修改seriesData实现单个节点配置 */
     setSeriesData(item, color) {
-      let { data, type } = item
-
       let derection = this.isRow ? [1, 0, 0, 0] : [0, 0, 0, 1]
-
-      let result = data.map((d, i) => {
+      /* 单个节点配置 */
+      item.data.forEach(d => {
         /* 单位 */
-        let unit = getUnit(this.unit)
-        let { itemStyle = {}, emphasis = {} } = d
-
+        d.unit = getUnit(this.unit)
         /* 自定义单个节点的颜色 */
-        if (d.color) {
-          merge(itemStyle, {
-            color: setColor(d.color, 'linear', derection),
-          })
-          merge(emphasis, {
+        if (d && d.color) {
+          Object.assign(d, {
             itemStyle: {
-              color: setColor(d.color, 'linear', derection),
+              color: setColor(d.color, 'Linear', derection),
+            },
+            emphasis: {
+              itemStyle: {
+                color: setColor(d.color, 'Linear', derection),
+              },
             },
           })
         }
+      })
 
-        /* 横向柱状图柱体逐个颜色渐变 */
-        if (type === 'bar' && item.isBarsGradient) {
-          let gradientColor = getGradientColorList(color, data.length)
-          merge(itemStyle, {
-            color: gradientColor[i],
-          })
-          merge(emphasis, {
+      /* 横向柱状图颜色渐变 */
+      if (this.isRow && item.type === 'bar' && item.isBarsGradient) {
+        let gradientColor = this.setGradientColor(color, item.data.length)
+        item.data.forEach((d, i) => {
+          Object.assign(d, {
             itemStyle: {
               color: gradientColor[i],
             },
+            emphasis: {
+              itemStyle: {
+                color: gradientColor[i],
+              },
+            },
           })
-        }
-
-        return Object.assign({}, d, {
-          unit,
-          itemStyle,
-          emphasis,
         })
-      })
-
-      return result
+      }
     },
     setLine(item, color) {
       let bgColor = item.withBg ? (item.bgColor ? item.bgColor : color) : null
@@ -280,7 +305,28 @@ export default {
       )
       return result
     },
+    setGradientColor(color, length) {
+      let result = []
+      for (let i = 0; i < length; i++) {
+        result.push(setColorOpacity(color, ((i + 1) / length).toFixed(2)))
+      }
+      return result
+    },
     /* 事件 */
+    legendselectchanged(val) {
+      let hasSelected = false
+      for (let key in val.selected) {
+        if (val.selected[key]) {
+          hasSelected = true
+        }
+      }
+      if (!hasSelected) {
+        this.dispatchAction({
+          type: 'legendSelect',
+          name: val.name,
+        })
+      }
+    },
     dispatchAction(...arg) {
       this.$refs.ChartBase.dispatchAction(...arg)
     },
@@ -288,7 +334,7 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-.ins-single-y {
+.ins-chart-single-y {
   font-size: inherit;
   width: 100%;
   height: 100%;

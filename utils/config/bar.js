@@ -36,7 +36,7 @@ export function setBarItem(color, barRadius, isRow) {
   let derection = isRow ? [0, 0, 1, 0] : [0, 0, 0, 1]
   return {
     itemStyle: {
-      color: setColor(color, 'Linear', derection),
+      color: setColor(color, 'linear', derection),
       barBorderRadius: barRadius || 0,
     },
   }
@@ -68,7 +68,7 @@ export function setBarBg(bgColor, withBg, bgOpacity, barBorderRadius) {
     showBackground: bgColor || withBg,
     backgroundStyle: {
       color: bgColor || 'rgba(220, 220, 220, 0.8)',
-      opacity: bgOpacity,
+      opacity: bgOpacity || 1,
       barBorderRadius,
     },
   }
