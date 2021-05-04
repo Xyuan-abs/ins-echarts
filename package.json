@@ -1,15 +1,11 @@
 {
   "name": "ins-echarts",
-  "version": "0.2.1",
+  "version": "2.0.1",
   "description": "echarts for vue",
   "main": "lib/ins-echarts.umd.min.js",
   "private": false,
   "license": "MIT",
   "author": "Xyuan",
-  "keywords": [
-    "vue",
-    "echarts"
-  ],
   "scripts": {
     "serve": "vue-cli-service serve",
     "dev": "vue-cli-service serve --open",
@@ -19,6 +15,16 @@
     "docs:dev": "vuepress dev docs  --temp .temp ",
     "docs:build": "vuepress build docs"
   },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Xyuan-abs/ins-echarts.git"
+  },
+  "homepage": "https://xyuan-abs.github.io/ins-echarts/",
+  "keywords": [
+    "vue",
+    "echarts"
+  ],
+  "style": "lib/ins-echarts.css",
   "dependencies": {
     "loadsh": "0.0.4"
   },
