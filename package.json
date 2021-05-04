@@ -15,7 +15,9 @@
     "dev": "vue-cli-service serve --open",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "lib": "vue-cli-service build --target lib --name ins-echarts --dest lib packages/index.js"
+    "lib": "vue-cli-service build --target lib --name ins-echarts --dest lib packages/index.js",
+    "docs:dev": "vuepress dev docs  --temp .temp ",
+    "docs:build": "vuepress build docs"
   },
   "dependencies": {
     "loadsh": "0.0.4"
@@ -38,6 +40,12 @@
     "vue-codemirror": "^4.0.6",
     "vue-echarts": "^5.0.0-beta.0",
     "vue-router": "^3.4.3",
-    "vue-template-compiler": "^2.6.11"
+    "vue-template-compiler": "^2.6.11",
+    "sass": "^1.26.8",
+    "vuepress": "^1.7.1",
+    "async-validator": "1.11.5",
+    "element-ui": "^2.14.1",
+    "ins-echarts": "^0.1.17",
+    "vuepress-plugin-demo-block": "^0.7.2"
   }
 }
