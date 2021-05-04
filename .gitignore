@@ -3,6 +3,7 @@ node_modules
 dist
 *.map
 lib/
+.temp
 
 
 # local env files
