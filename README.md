@@ -1,3 +1,7 @@
+## 开发文档
+
+[ins-echarts 在线开发文档](https://xyuan-abs.github.io/ins-echarts/)
+
 ## Install
 
 ```
